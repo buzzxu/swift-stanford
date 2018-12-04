@@ -37,4 +37,13 @@ class Concentration {
             }
         }
     }
+    
+    func isAllMatch() -> Bool {
+        for index in cards.indices {
+            if !cards[index].isMatche {
+                return false
+            }
+        }
+        return true
+    }
 }

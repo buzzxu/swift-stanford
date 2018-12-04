@@ -12,7 +12,7 @@ class ViewController: UIViewController {
 
     @IBOutlet var cardButtons: [UIButton]!
     @IBOutlet weak var flipsCountLabel: UILabel!
-    lazy var game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
+    var game : Concentration!
     var flipCount  = 0 {
         didSet {
             flipsCountLabel.text = "Flips:\(flipCount)"
@@ -26,19 +26,29 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         flipsCountLabel.numberOfLines = 0
+        game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
     }
 
     
     @IBAction func touchCard(_ sender: UIButton) {
-        flipCount += 1
-    
-        if let cardNumber = cardButtons.firstIndex(of: sender){
-           game.chooseCart(at: cardNumber)
-            updateViewFromModel()
-        }else {
-            print("chosen card was not in cardButtons")
+        if game.isAllMatch() {
+            let alert = UIAlertController(title:"提示框",message:"获得了\(flipCount)分，你真棒",preferredStyle:.alert)
+            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: {
+                _ in  
+            }))
+            self.present(alert, animated: true, completion: {
+                self.game = Concentration(numberOfPairsOfCards: (self.cardButtons.count + 1) / 2)
+            })
+        }else{
+            flipCount += 1
+            if let cardNumber = cardButtons.firstIndex(of: sender){
+                game.chooseCart(at: cardNumber)
+                updateViewFromModel()
+            }else {
+                print("chosen card was not in cardButtons")
+            }
         }
-        
+
     }
     
 
