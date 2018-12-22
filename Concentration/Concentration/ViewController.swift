@@ -10,10 +10,13 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    @IBOutlet var cardButtons: [UIButton]!
-    @IBOutlet weak var flipsCountLabel: UILabel!
-    var game : Concentration!
-    var flipCount  = 0 {
+    @IBOutlet private var cardButtons: [UIButton]!
+    @IBOutlet private weak var flipsCountLabel: UILabel!
+    private var game : Concentration!
+    var numberOfPairsOfCards : Int {
+         return (cardButtons.count + 1) / 2
+    }
+    private(set) var flipCount  = 0 {
         didSet {
             flipsCountLabel.text = "Flips:\(flipCount)"
         }
@@ -26,33 +29,31 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         flipsCountLabel.numberOfLines = 0
-        game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
+        game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards)
     }
 
     
-    @IBAction func touchCard(_ sender: UIButton) {
-        if game.isAllMatch() {
-            let alert = UIAlertController(title:"提示框",message:"获得了\(flipCount)分，你真棒",preferredStyle:.alert)
-            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: {
-                _ in  
-            }))
-            self.present(alert, animated: true, completion: {
-                self.game = Concentration(numberOfPairsOfCards: (self.cardButtons.count + 1) / 2)
-            })
-        }else{
-            flipCount += 1
-            if let cardNumber = cardButtons.firstIndex(of: sender){
-                game.chooseCart(at: cardNumber)
-                updateViewFromModel()
-            }else {
-                print("chosen card was not in cardButtons")
+    @IBAction private  func touchCard(_ sender: UIButton) {
+        flipCount += 1
+        if let cardNumber = cardButtons.firstIndex(of: sender){
+            game.chooseCart(at: cardNumber)
+            updateViewFromModel()
+            if game.isAllMatch() {
+                let alert = UIAlertController(title:"提示框",message:"获得了\(flipCount)分，你真棒",preferredStyle:.alert)
+                alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Default action"), style: .default, handler: {
+                    _ in  (
+                        self.game = Concentration(numberOfPairsOfCards: (self.cardButtons.count + 1) / 2)
+                    )
+                }))
+                self.present(alert, animated: true, completion: nil)
+                
             }
+        }else {
+            print("chosen card was not in cardButtons")
         }
-
     }
-    
 
-    func updateViewFromModel()  {
+    private func updateViewFromModel()  {
         for index in cardButtons.indices {
             let button = cardButtons[index]
             let card = game.cards[index]
@@ -67,15 +68,28 @@ class ViewController: UIViewController {
         }
     }
     
-    var emojiChoices = ["🤡","🚑","😱","⚽️","🍫","🥝","❄️","☃️","☀️"]
+    private var emojiChoices = ["🤡","🚑","😱","⚽️","🍫","🥝","❄️","☃️","☀️"]
     
-    var emoji = [Int:String]()
-    func emoji(for card:Card)-> String {
-        if emoji[card.identifier] == nil ,emojiChoices.count > 0 {
-            let randomIndex = Int(arc4random_uniform(UInt32(emojiChoices.count)))
-            emoji[card.identifier] = emojiChoices.remove(at: randomIndex)
+    private var emoji = [Card:String]()
+    private func emoji(for card:Card)-> String {
+        if emoji[card] == nil ,emojiChoices.count > 0 {
+            let randomIndex = emojiChoices.count.arc4random
+            emoji[card] = emojiChoices.remove(at: randomIndex)
         }
-        return emoji[card.identifier] ?? "?"
+        return emoji[card] ?? "?"
+    }
+}
+
+extension Int {
+    var arc4random : Int {
+        if self > 0 {
+            return Int(arc4random_uniform(UInt32(self)))
+        }else if self < 0 {
+            return -Int(arc4random_uniform(UInt32(abs(self))))
+        }else {
+            return 0
+        }
+        
     }
 }
 
